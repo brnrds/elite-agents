@@ -6,7 +6,7 @@ set -e
 
 # Parse arguments
 MAX_ITERATIONS=10
-MODEL="Composer 2 (Fast)"
+MODEL="composer-2-fast"
 OUTPUT_FORMAT="text"
 
 while [[ $# -gt 0 ]]; do
