@@ -1,0 +1,817 @@
+{
+  "project": "Elite TypeScript Port",
+  "branchName": "ralph/elite-typescript-browser-port",
+  "description": "Build a browser-native TypeScript port of BBC Master 128 Elite (Acornsoft) with jsbeeb-backed deterministic checks and captured visual evidence for fidelity verification.",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Record the reference contract and phase-1 non-goals",
+      "description": "As a port engineer, I want the canonical reference variant and non-goals documented up front so that every later implementation task targets the same correctness contract.",
+      "acceptanceCriteria": [
+        "`docs/elite-typescript-port-step-by-step.md` and `docs/tasks/reference-contract.md` are created or updated as the port runbook and reference contract",
+        "The reference contract records `BBC Master 128 (DFS)` in `jsbeeb`, the SNG47 disc, the canonical local corpus, the non-canonical exploratory artifact, and the explicit phase-1 non-goals",
+        "The runbook states that implementation work starts only after the reference variant and non-goals are written down",
+        "Typecheck passes"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-002",
+      "title": "Add root TypeScript, Vite, and Vitest toolchain config",
+      "description": "As a port engineer, I want the repository wired for TypeScript, Vite, and Vitest so that browser code and verification code have a stable build and test foundation.",
+      "acceptanceCriteria": [
+        "Root `package.json`, `tsconfig.json`, `vite.config.ts`, `vitest.config.ts`, and `index.html` are created",
+        "`package.json` defines `dev`, `build`, `test`, `test:reference`, and `test:visual` scripts",
+        "The root Node engine or version note aligns with `tools/jsbeeb/package.json` unless an explicit divergence is documented",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "Scaffold browser entry, game shell, and path aliases",
+      "description": "As a port engineer, I want the browser entrypoint and module layout scaffolded so that runtime code, platform adapters, and UI code have clear homes before subsystem work begins.",
+      "acceptanceCriteria": [
+        "`src/app/browser-entry.ts`, `src/app/game-shell.ts`, `src/ui/`, and `tests/` are created",
+        "TypeScript path aliases are defined for `src/core`, `src/platform`, and `src/ui`",
+        "The browser app renders a visible shell placeholder and test code can import through the configured aliases",
+        "Tests pass",
+        "Verify in browser using dev-browser skill",
+        "Typecheck passes"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-004",
+      "title": "Boot the canonical jsbeeb reference session",
+      "description": "As a port engineer, I want a reliable reference-session bootstrap so that every fixture and comparison starts from the same machine contract.",
+      "acceptanceCriteria": [
+        "`scripts/reference/session.ts`, `scripts/reference/boot-reference.ts`, and `tests/reference/reference-harness.test.ts` are created",
+        "The harness boots the SNG47 disc on `BBC Master 128 (DFS)` and exposes a stable session contract for later helpers",
+        "Reference-harness tests prove the session boots successfully without modifying `tools/jsbeeb` internals for the port runtime",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-005",
+      "title": "Add stepping, breakpoint, memory, and input helpers to the reference harness",
+      "description": "As a port engineer, I want deterministic stepping and memory helpers so that fixture extraction can drive the reference machine precisely.",
+      "acceptanceCriteria": [
+        "`scripts/reference/breakpoints.ts` and supporting helpers expose run-for-cycle, run-until-address, memory read, memory write, and key input operations",
+        "The harness can stop on breakpoints and mutate memory deterministically during a booted session",
+        "Reference-harness tests cover breakpoint hits, cycle stepping, memory IO, and key input helpers",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-006",
+      "title": "Add text capture, screenshot, and snapshot helpers to the reference harness",
+      "description": "As a port engineer, I want capture and restore helpers on the harness so that later stories can produce repeatable text, image, and state evidence.",
+      "acceptanceCriteria": [
+        "`scripts/reference/snapshot.ts` and supporting helpers expose text capture, screenshot capture, and snapshot/restore operations",
+        "A booted reference session can capture text output, save a snapshot, restore it, and continue deterministically",
+        "Reference-harness tests cover screenshot capture, text capture, and snapshot round-tripping",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-007",
+      "title": "Define reference and visual fixture manifests",
+      "description": "As a port engineer, I want fixture conventions documented before subsystem work starts so that every later module proves correctness the same way.",
+      "acceptanceCriteria": [
+        "`tests/fixtures/reference/manifest.json`, `tests/fixtures/reference/README.md`, and `tests/fixtures/visual/README.md` are created",
+        "Fixture locations are defined for `rng`, `galaxy`, `market`, `text`, `movement`, `tactics`, `commander`, `screens`, and `scenes`",
+        "The manifest and READMEs require every fixture to record machine/disc, source routine context, setup method, exact inputs, exact expected outputs or image, and the capture script used",
+        "Typecheck passes"
+      ],
+      "priority": 7,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-008",
+      "title": "Add a deterministic fixture extraction CLI",
+      "description": "As a port engineer, I want a reusable extraction script so that deterministic reference fixtures can be added consistently as subsystems are ported.",
+      "acceptanceCriteria": [
+        "`scripts/fixtures/extract-fixture.ts` is created",
+        "The CLI writes fixture records that match the reference manifest contract, including setup metadata and capture-script provenance",
+        "At least one deterministic extraction path is implemented and exercised by tests",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 8,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-009",
+      "title": "Add a scene capture CLI for visual fixtures",
+      "description": "As a port engineer, I want a dedicated scene-capture tool so that later renderer work can compare bounded browser scenes against captured reference images.",
+      "acceptanceCriteria": [
+        "`scripts/fixtures/capture-scene.ts` is created",
+        "The CLI captures named scenes into `tests/fixtures/visual/` using the visual fixture conventions",
+        "At least one scene capture path is implemented and exercised by tests or a scripted smoke check",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 9,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-010",
+      "title": "Implement `u8`, `u16`, and bitwise helpers",
+      "description": "As a port engineer, I want explicit fixed-width byte helpers so that JavaScript number behavior does not leak into ported gameplay logic.",
+      "acceptanceCriteria": [
+        "`src/core/arithmetic/u8.ts`, `src/core/arithmetic/u16.ts`, `src/core/arithmetic/bitwise.ts`, and matching unit tests are created",
+        "Helpers cover masking, wraparound, carry, borrow, shifts, and rotates needed by the first deterministic subsystems",
+        "Arithmetic tests prove reference-relevant wraparound and carry behavior",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 10,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-011",
+      "title": "Implement sign-magnitude and fixed-width helpers",
+      "description": "As a port engineer, I want the signed-byte conventions modeled explicitly so that movement and coordinate logic can preserve Elite's original storage semantics.",
+      "acceptanceCriteria": [
+        "`src/core/arithmetic/sign-magnitude.ts`, `src/core/arithmetic/fixed-width.ts`, and matching unit tests are created",
+        "Helpers support sign-magnitude encode/decode plus small readability wrappers used by simulation code",
+        "Unit tests cover sign-magnitude round-tripping and any shared fixed-width helpers added for later subsystems",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 11,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-012",
+      "title": "Model ZP, WP, and UP workspace state",
+      "description": "As a port engineer, I want named workspace structures instead of opaque byte arrays so that later subsystem ports can work with readable typed state.",
+      "acceptanceCriteria": [
+        "`src/core/state/workspaces/zp.ts`, `src/core/state/workspaces/wp.ts`, and `src/core/state/workspaces/up.ts` are created",
+        "Each workspace exposes named fields and lossless conversion to and from the byte layouts needed by fixtures",
+        "Unit tests round-trip workspace state through the serializer without losing byte fidelity",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 12,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-013",
+      "title": "Model `K%` and `INWK` ship byte layouts",
+      "description": "As a port engineer, I want ship-block structures modeled explicitly so that ship logic can preserve original semantics without exposing raw memory blobs as the main API.",
+      "acceptanceCriteria": [
+        "`src/core/state/ships/k-block.ts` and `src/core/state/ships/inwk.ts` are created",
+        "The ship-state modules expose named fields while preserving lossless conversion to and from fixture byte layouts",
+        "Unit tests round-trip ship block and `INWK` state without byte drift",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 13,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-014",
+      "title": "Add commander state and shared serialization helpers",
+      "description": "As a port engineer, I want commander state and generic serialization primitives in place so that save data and stateful systems can build on a consistent typed surface.",
+      "acceptanceCriteria": [
+        "`src/core/state/commander/commander-state.ts`, `src/core/state/serialization/`, and matching unit tests are created",
+        "Shared serializers support lossless conversion for commander data and the first ported subsystems that depend on byte layouts",
+        "Unit tests cover serializer round-trips and commander-state round-trips",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 14,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-015",
+      "title": "Port ship blueprints and lookup tables",
+      "description": "As a port engineer, I want the core lookup data represented as typed modules so that simulation code can depend on stable data without assembly-era runtime structures.",
+      "acceptanceCriteria": [
+        "`src/core/data/ship-blueprints.ts`, `src/core/data/lookup-tables.ts`, and matching tests are created",
+        "Ship blueprint data and lookup-table content needed by early simulation modules match extracted reference fixtures",
+        "Tests verify the typed modules against captured reference data",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 15,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-016",
+      "title": "Port market and text token data tables",
+      "description": "As a port engineer, I want market tables and token tables in typed modules so that world generation and text systems can consume reference-matched data.",
+      "acceptanceCriteria": [
+        "`src/core/data/markets.ts`, `src/core/data/tokens.ts`, `src/core/data/system-name-tokens.ts`, and matching tests are created",
+        "The market tables and token tables match extracted reference fixtures for representative captured cases",
+        "Tests verify market and token data against fixture snapshots",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 16,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-017",
+      "title": "Add dashboard data and asset module scaffold",
+      "description": "As a port engineer, I want presentation constants and asset modules scaffolded so that renderer stories can depend on typed assets instead of ad hoc embedded data.",
+      "acceptanceCriteria": [
+        "`src/core/data/dashboard.ts`, `src/core/assets/`, and matching tests are created",
+        "Dashboard or font-related presentation data needed by the initial browser shell is represented as typed modules or asset metadata",
+        "Tests prove the required dashboard asset modules resolve and load through the new typed surface",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 17,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-018",
+      "title": "Port RNG core and galaxy seed helpers",
+      "description": "As a port engineer, I want Elite's deterministic random state modeled first so that later world-generation modules can reproduce reference outputs exactly.",
+      "acceptanceCriteria": [
+        "`src/core/world/rng.ts`, `src/core/world/galaxy/seed.ts`, and `tests/reference/rng.test.ts` are created",
+        "Known RNG sequences and seed transitions match captured reference fixtures exactly",
+        "Reference tests cover the deterministic seed and RNG helpers used by later world-generation code",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 18,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-019",
+      "title": "Port galaxy system generation",
+      "description": "As a port engineer, I want galaxy system generation ported next so that system records can be compared against the reference build before map and travel features depend on them.",
+      "acceptanceCriteria": [
+        "`src/core/world/galaxy/system-generation.ts` and `tests/reference/galaxy.test.ts` are created",
+        "Known system coordinates, economy, government, tech level, population, and productivity values match captured reference fixtures",
+        "Reference tests verify deterministic system generation for representative seeds and galaxies",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 19,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-020",
+      "title": "Port system-name generation",
+      "description": "As a port engineer, I want system names generated from typed TypeScript logic so that canonical names and description inputs no longer depend on the original runtime layout.",
+      "acceptanceCriteria": [
+        "`src/core/world/galaxy/system-names.ts` and matching tests are created",
+        "Known system names for representative captured seeds match the reference fixtures exactly",
+        "Tests verify the ported name-generation logic against the recorded reference corpus",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 20,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-021",
+      "title": "Port market generation",
+      "description": "As a port engineer, I want market-generation logic ported independently so that economy systems can build on exact prices and availabilities for captured systems.",
+      "acceptanceCriteria": [
+        "`src/core/world/market/market-generation.ts` and `tests/reference/market.test.ts` are created",
+        "Prices and availabilities for representative captured systems match the reference fixtures exactly",
+        "Reference tests cover deterministic market generation for known seeds and systems",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 21,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-022",
+      "title": "Implement vector math and arctan helpers",
+      "description": "As a port engineer, I want the low-level presentation math isolated first so that later projection and rendering code can depend on deterministic primitives.",
+      "acceptanceCriteria": [
+        "`src/core/presentation/vector.ts`, `src/core/presentation/arctan.ts`, and matching tests are created",
+        "Vector operations and angle helpers match captured reference outputs for curated inputs",
+        "Tests verify the math helpers before any scene renderer depends on them",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 22,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-023",
+      "title": "Implement projection helpers",
+      "description": "As a port engineer, I want projection behavior verified in isolation so that full renderers can build on reference-matched screen transforms.",
+      "acceptanceCriteria": [
+        "`src/core/presentation/projection.ts` and `tests/reference/projection.test.ts` are created",
+        "Projection helpers match captured reference outputs for curated test scenes before any full-scene renderer is added",
+        "Reference tests verify deterministic projection outputs for the chosen fixture set",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 23,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-024",
+      "title": "Implement pixel, line, and circle drawing primitives",
+      "description": "As a port engineer, I want raster primitives proven against reference fixtures so that later scene renderers inherit stable low-level drawing behavior.",
+      "acceptanceCriteria": [
+        "`src/core/presentation/pixel-plotter.ts`, `src/core/presentation/line-rasterizer.ts`, `src/core/presentation/circle.ts`, and `tests/reference/rasterizer.test.ts` are created",
+        "Pixel plotting, line rasterization, and circle drawing match captured reference outputs for curated primitive fixtures",
+        "Reference tests verify isolated raster outputs before ship or dashboard renderers are added",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 24,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-025",
+      "title": "Model local-universe and scanner state",
+      "description": "As a port engineer, I want the local-universe state represented explicitly so that movement, tactics, and scanner logic can share typed runtime structures.",
+      "acceptanceCriteria": [
+        "`src/core/simulation/universe/universe-state.ts`, `src/core/simulation/universe/local-bubble.ts`, `src/core/simulation/scanner/scanner-state.ts`, and matching tests are created",
+        "The local-universe and scanner structures can represent all bytes and fields needed by the first captured movement scenarios",
+        "Tests prove the state objects serialize or initialize correctly for fixture-backed scenarios",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 25,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-026",
+      "title": "Port ship spawn and orientation transforms",
+      "description": "As a port engineer, I want spawn and orientation logic isolated so that ship-placement behavior can be verified before full movement updates run.",
+      "acceptanceCriteria": [
+        "`src/core/simulation/ships/spawn.ts`, `src/core/simulation/ships/orientation.ts`, and matching tests are created",
+        "Captured spawn and orientation cases match the reference harness outputs for representative scenarios",
+        "Tests verify deterministic orientation transforms before per-tick ship movement depends on them",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 26,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-027",
+      "title": "Port ship movement and local-bubble updates",
+      "description": "As a port engineer, I want local ship motion ported against fixtures so that the runtime can maintain the in-flight bubble with reference semantics.",
+      "acceptanceCriteria": [
+        "`src/core/simulation/ships/move-ship.ts`, `tests/reference/movement.test.ts`, and `tests/reference/local-bubble.test.ts` are created",
+        "Captured local-bubble movement scenarios match the reference harness for ship updates and bubble-state changes",
+        "Reference tests cover representative travel and ordinary in-flight update cases",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 27,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-028",
+      "title": "Port tactical decision rules",
+      "description": "As a port engineer, I want tactical state transitions ported independently so that combat behavior can be checked before weapon and collision rules are layered on top.",
+      "acceptanceCriteria": [
+        "`src/core/simulation/tactics/tactics.ts` and `tests/reference/tactics.test.ts` are created",
+        "Representative tactical decision scenarios match captured reference state transitions and target-selection outcomes",
+        "Reference tests cover the curated tactics fixtures needed by later combat stories",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 28,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-029",
+      "title": "Port laser, missile, and collision resolution",
+      "description": "As a port engineer, I want the immediate combat rules ported in one focused story so that hit resolution and collision outcomes can be checked against captured evidence.",
+      "acceptanceCriteria": [
+        "`src/core/simulation/combat/laser.ts`, `src/core/simulation/combat/missiles.ts`, `src/core/simulation/combat/collision.ts`, and `tests/reference/combat.test.ts` are created",
+        "Representative combat scenarios match captured reference state transitions, weapon outcomes, and collision results",
+        "Reference tests cover at least one laser, missile, and collision fixture path",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 29,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-030",
+      "title": "Port docking checks and docking computer logic",
+      "description": "As a port engineer, I want docking behavior isolated so that eligibility checks and auto-docking flow can be verified before full game-loop integration.",
+      "acceptanceCriteria": [
+        "`src/core/simulation/docking/docking-checks.ts`, `src/core/simulation/docking/docking-computer.ts`, and `tests/reference/docking.test.ts` are created",
+        "Representative docking scenarios match captured reference eligibility checks and docking-computer behavior",
+        "Reference tests cover the curated docking fixtures selected for phase 1",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 30,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-031",
+      "title": "Port cargo scooping logic",
+      "description": "As a port engineer, I want scooping rules ported separately so that cargo-state transitions can be checked without bundling them into larger flight-loop changes.",
+      "acceptanceCriteria": [
+        "`src/core/simulation/cargo/scooping.ts` and matching tests are created",
+        "Representative scooping scenarios match captured reference cargo and ship-state transitions",
+        "Tests verify the scooping logic against the selected fixture set",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 31,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-032",
+      "title": "Implement flight context and per-tick orchestration",
+      "description": "As a port engineer, I want the main flight loop expressed as readable TypeScript modules so that the runtime can replace the reference orchestration path without preserving opaque control flow.",
+      "acceptanceCriteria": [
+        "`src/core/simulation/flight/flight-context.ts`, `src/core/simulation/flight/flight-step.ts`, and `src/core/simulation/flight/main-flight-loop.ts` are created",
+        "The flight loop preserves observable ordering and effects for the subsystems already ported while remaining readable and modular",
+        "Unit or integration tests exercise the flight-step orchestration surface before reference-scenario comparisons are added",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 32,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-033",
+      "title": "Add curated main flight loop reference scenarios",
+      "description": "As a port engineer, I want stepped flight-loop comparisons against jsbeeb so that the integrated in-flight behavior is proven on captured scenarios rather than by code inspection.",
+      "acceptanceCriteria": [
+        "`tests/reference/main-flight-loop.test.ts` is created",
+        "Stepped scenarios covering combat, docking, planet approach, and ordinary travel compare the TypeScript loop against captured jsbeeb evidence",
+        "The reference scenarios fail on observable mismatches in ordering or state transitions",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 33,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-034",
+      "title": "Implement main game-loop scheduler and view-state orchestration",
+      "description": "As a port engineer, I want the top-level loop and scheduler ported before docked-flow edge cases so that flight and view-state transitions have a clear TypeScript home.",
+      "acceptanceCriteria": [
+        "`src/core/simulation/game/scheduler.ts`, `src/core/simulation/game/view-state.ts`, and `src/core/simulation/game/main-game-loop.ts` are created",
+        "The top-level loop can enter play and continue scheduler ordering for the subsystems already ported",
+        "Tests cover the scheduler and view-state orchestration surface before docked-flow integration is added",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 34,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-035",
+      "title": "Add docked-flow transitions and spawn-rule integration",
+      "description": "As a port engineer, I want docked transitions and event spawning verified after the game-loop scaffold exists so that top-level flow stays ordered like the reference build.",
+      "acceptanceCriteria": [
+        "`src/core/simulation/game/spawn-rules.ts` and `tests/reference/main-game-loop.test.ts` are created",
+        "Captured scenarios prove the loop can transition between in-flight and docked flows while keeping event-spawn ordering aligned with the reference build",
+        "Reference tests fail on mismatched docked-flow transitions or spawn ordering",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 35,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-036",
+      "title": "Port trade, equipment, and status logic",
+      "description": "As a port engineer, I want the primary non-flight economy rules ported together so that docked gameplay can manipulate cargo, equipment, and commander status with reference-backed behavior.",
+      "acceptanceCriteria": [
+        "`src/core/simulation/economy/trade.ts`, `src/core/simulation/economy/equipment.ts`, `src/core/simulation/economy/status.ts`, and `tests/reference/economy.test.ts` are created",
+        "Representative trade calculations, equipment effects, and status outputs match captured reference data",
+        "Reference tests cover the curated docked-economy fixture set",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 36,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-037",
+      "title": "Port galaxy map and hyperspace logic",
+      "description": "As a port engineer, I want navigation and hyperspace behavior ported independently so that travel transitions can be validated before mission or shell integration relies on them.",
+      "acceptanceCriteria": [
+        "`src/core/simulation/navigation/galaxy-map.ts`, `src/core/simulation/navigation/hyperspace.ts`, and matching tests are created",
+        "Representative route-selection and hyperspace-transition outputs match captured reference fixtures",
+        "Tests cover the navigation and hyperspace fixture cases selected for phase 1",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 37,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-038",
+      "title": "Port mission-state logic",
+      "description": "As a port engineer, I want mission progression modeled separately so that scripted state transitions can be checked without bundling them into broader docked-flow work.",
+      "acceptanceCriteria": [
+        "`src/core/simulation/missions/mission-state.ts` and `tests/reference/mission.test.ts` are created",
+        "Representative mission progression scenarios match captured reference data for the chosen mission fixtures",
+        "Reference tests cover mission-state transitions and stored mission data for the curated cases",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 38,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-039",
+      "title": "Port commander save format and save-load flows",
+      "description": "As a port engineer, I want commander persistence ported before browser storage integration so that save semantics can be verified separately from platform adapters.",
+      "acceptanceCriteria": [
+        "`src/core/simulation/commander/save-format.ts`, `src/core/simulation/commander/save-load.ts`, and `tests/reference/commander.test.ts` are created",
+        "Commander save/load round trips and representative captured commander fields match the chosen reference rules",
+        "Reference tests cover save-format serialization and load behavior for the curated fixtures",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 39,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-040",
+      "title": "Port token expansion and text formatting",
+      "description": "As a port engineer, I want text formatting separated from procedural generation so that token-driven UI strings can be validated before goat-soup logic is added.",
+      "acceptanceCriteria": [
+        "`src/core/presentation/text/token-expansion.ts`, `src/core/presentation/text/formatting.ts`, and matching tests are created",
+        "Representative market, system, and scripted token expansion outputs match captured reference fixtures",
+        "Tests verify token expansion and formatting behavior for the selected text cases",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 40,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-041",
+      "title": "Port goat-soup procedural text generation",
+      "description": "As a port engineer, I want generated descriptive text ported in a dedicated story so that goat-soup behavior can be compared against representative reference output independently.",
+      "acceptanceCriteria": [
+        "`src/core/presentation/text/goat-soup.ts` and `tests/reference/text.test.ts` are created",
+        "Representative generated descriptions match captured reference fixtures for the selected seeds and contexts",
+        "Reference tests cover the goat-soup fixture set without relying on screen-memory-era printing logic",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 41,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-042",
+      "title": "Implement the Canvas2D renderer boundary and framebuffer",
+      "description": "As a port engineer, I want a browser rendering adapter boundary before scene renderers are added so that the first implementation is playable while remaining replaceable by future backends.",
+      "acceptanceCriteria": [
+        "`src/platform/render/canvas2d/canvas-renderer.ts` and `src/platform/render/canvas2d/framebuffer.ts` are created",
+        "The renderer boundary keeps browser-specific drawing concerns separate from deterministic core presentation logic",
+        "A browser shell can present framebuffer output through the Canvas2D adapter",
+        "Tests pass",
+        "Verify in browser using dev-browser skill",
+        "Typecheck passes"
+      ],
+      "priority": 42,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-043",
+      "title": "Implement ship, planet, sun, and starfield renderers",
+      "description": "As a port engineer, I want the main space-scene renderers split into one focused story so that the largest visible scene elements can be checked against captured reference images.",
+      "acceptanceCriteria": [
+        "`src/core/presentation/renderers/ship-renderer.ts`, `src/core/presentation/renderers/planet-renderer.ts`, `src/core/presentation/renderers/sun-renderer.ts`, `src/core/presentation/renderers/starfield-renderer.ts`, and matching visual tests are created",
+        "Bounded ship, planet, sun, and starfield scenes meet the chosen pixel or perceptual regression thresholds against captured reference images",
+        "Tests pass",
+        "Verify in browser using dev-browser skill",
+        "Typecheck passes"
+      ],
+      "priority": 43,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-044",
+      "title": "Implement scanner, dashboard, and sights renderers",
+      "description": "As a port engineer, I want cockpit-oriented renderers ported in a separate story so that HUD fidelity can be checked independently from world-scene rendering.",
+      "acceptanceCriteria": [
+        "`src/core/presentation/renderers/scanner-renderer.ts`, `src/core/presentation/renderers/dashboard-renderer.ts`, `src/core/presentation/renderers/sights-renderer.ts`, and matching visual tests are created",
+        "Bounded scanner, dashboard, and sights scenes meet the chosen pixel or perceptual regression thresholds against captured reference images",
+        "Tests pass",
+        "Verify in browser using dev-browser skill",
+        "Typecheck passes"
+      ],
+      "priority": 44,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-045",
+      "title": "Add visual regression coverage for curated render scenes",
+      "description": "As a port engineer, I want the renderer stories backed by stable regression coverage so that future changes cannot silently drift away from the captured reference scenes.",
+      "acceptanceCriteria": [
+        "`tests/visual/` includes curated regression tests for ships, sun, planet, starfield, scanner, and dashboard scenes",
+        "Regression thresholds and fixture selection are documented in the visual test suite for the chosen scenes",
+        "Tests pass",
+        "Verify in browser using dev-browser skill",
+        "Typecheck passes"
+      ],
+      "priority": 45,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-046",
+      "title": "Implement browser keyboard and joystick adapters",
+      "description": "As a port engineer, I want input adapters separated from the core simulation so that browser controls can be verified without coupling them to flight logic internals.",
+      "acceptanceCriteria": [
+        "`src/platform/browser/input/keyboard.ts`, `src/platform/browser/input/joystick.ts`, and matching integration tests are created",
+        "Keyboard controls and optional joystick input are translated into the shell input contract with stable bindings",
+        "Tests pass",
+        "Verify in browser using dev-browser skill",
+        "Typecheck passes"
+      ],
+      "priority": 46,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-047",
+      "title": "Implement browser audio and commander storage adapters",
+      "description": "As a port engineer, I want audio and persistence adapters isolated from core gameplay so that browser-specific side effects can be tested and replaced independently.",
+      "acceptanceCriteria": [
+        "`src/platform/browser/audio/audio-engine.ts`, `src/platform/browser/storage/commander-storage.ts`, and matching integration tests are created",
+        "Audio cues and commander persistence work through browser adapters without leaking browser APIs into deterministic core modules",
+        "Tests pass",
+        "Verify in browser using dev-browser skill",
+        "Typecheck passes"
+      ],
+      "priority": 47,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-048",
+      "title": "Integrate the game shell with HUD and screen modules",
+      "description": "As a port engineer, I want the browser shell to compose the runtime adapters and UI modules so that the port becomes a playable application instead of disconnected subsystems.",
+      "acceptanceCriteria": [
+        "`src/app/game-shell.ts`, `src/ui/screens/*.ts`, `src/ui/hud/*.ts`, and `tests/integration/browser-shell.test.ts` are created or updated",
+        "The game shell wires input, audio, storage, rendering, and view-state adapters into a playable browser flow",
+        "Integration tests cover the shell contract for the initial playable paths",
+        "Tests pass",
+        "Verify in browser using dev-browser skill",
+        "Typecheck passes"
+      ],
+      "priority": 48,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-049",
+      "title": "Implement bootstrap, loading, and title screens",
+      "description": "As a port engineer, I want the startup flow split from in-game screens so that the product can boot into a usable title path without reproducing original loader choreography.",
+      "acceptanceCriteria": [
+        "`src/app/bootstrap.ts`, `src/ui/screens/title-screen.ts`, `src/ui/screens/loading-screen.ts`, and matching integration tests are created",
+        "The browser build boots through loading into a usable title flow while explicitly omitting copy-protection or disc-loader choreography that is out of scope",
+        "Tests pass",
+        "Verify in browser using dev-browser skill",
+        "Typecheck passes"
+      ],
+      "priority": 49,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-050",
+      "title": "Implement flight and docked screen transitions",
+      "description": "As a port engineer, I want the core user-facing screen transitions verified separately so that title, flight, and docked paths behave like one coherent product.",
+      "acceptanceCriteria": [
+        "`src/ui/screens/flight-screen.ts`, `src/ui/screens/docked-screen.ts`, and `tests/integration/startup-flow.test.ts` are created",
+        "The browser build can enter gameplay and return cleanly between title, flight, and docked paths for the supported phase-1 flows",
+        "Tests pass",
+        "Verify in browser using dev-browser skill",
+        "Typecheck passes"
+      ],
+      "priority": 50,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-051",
+      "title": "Expand deterministic end-to-end reference acceptance tests",
+      "description": "As a port engineer, I want broad automated evidence for reference-backed gameplay flows so that the port's core simulation is defended against regression across integrated systems.",
+      "acceptanceCriteria": [
+        "`tests/reference/acceptance/` is created and populated with deterministic acceptance coverage",
+        "Acceptance flows cover the curated phase-1 scenarios for launch, docking, trade, hyperspace, combat, death, and save/load using fixture-backed checks",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 51,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-052",
+      "title": "Expand visual acceptance coverage and playtest documentation",
+      "description": "As a port engineer, I want visual evidence and human-check guidance maintained together so that fidelity is proven both mechanically and experientially.",
+      "acceptanceCriteria": [
+        "`tests/visual/acceptance/`, `docs/tasks/playtest-checklist.md`, and `docs/tasks/known-fidelity-gaps.md` are created or updated",
+        "Visual acceptance covers the curated dashboard, scanner, ship, sun, planet, title, and loading scenes used for phase-1 review",
+        "The docs record input feel, movement feel, docking feel, combat feel, audio feel, and every known fidelity gap with a clear fix, acceptance, or follow-up state",
+        "Tests pass",
+        "Verify in browser using dev-browser skill",
+        "Typecheck passes"
+      ],
+      "priority": 52,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-053",
+      "title": "Add browser build packaging and CI workflows",
+      "description": "As a port engineer, I want repeatable build and CI automation so that another engineer can verify the browser port without reconstructing the workflow by hand.",
+      "acceptanceCriteria": [
+        "Browser build output configuration and CI scripts are created or updated at the repository root",
+        "The project exposes one command for local development, one for the full test suite, one for reference extraction refresh, and one for production build",
+        "CI runs the relevant build and test commands successfully",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 53,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-054",
+      "title": "Document release, legal, and verification workflow",
+      "description": "As a port engineer, I want the release and verification docs finalized so that another engineer can understand the corpus, constraints, and validation approach behind the browser port.",
+      "acceptanceCriteria": [
+        "Root `README.md` and `docs/tasks/release-checklist.md` are created or updated",
+        "The documentation explains the reference corpus, legal constraints, verification harness, and how to build, test, and run the browser port",
+        "Another engineer can follow the documented commands and understand the relationship between the TypeScript port and the reference corpus",
+        "Typecheck passes"
+      ],
+      "priority": 54,
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}
