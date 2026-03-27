@@ -1,0 +1,211 @@
+---
+title: "The ex subroutine - Elite on the 6502"
+source: "https://elite.bbcelite.com/master/main/subroutine/ex.html"
+---
+
+[TT43](tt43.md "Previous routine")[SWAPPZERO](swappzero.md "Next routine")
+    
+    
+           Name: ex                                                      [Show more]
+           Type: Subroutine
+       Category: Text
+        Summary: Print a recursive token
+      Deep dive: [Printing text tokens](https://elite.bbcelite.com/deep_dives/printing_text_tokens.html)
+    
+    
+        Context: See this subroutine [in context in the source code](../../all/elite_e.md#header-ex)
+     References: This subroutine is called as follows:
+                 * [DEATH](death.md) calls ex
+                 * [qw](qw.md) calls ex
+                 * [TT27](tt27.md) calls ex
+                 * [DOEXP](doexp.md) calls via TT48
+                 * [TT43](tt43.md) calls via TT48
+                 * [TT45](tt45.md) calls via TT48
+    
+    
+    
+    
+    
+    * * *
+    
+    
+     This routine works its way through the recursive text tokens that are stored
+     in tokenised form in the table at QQ18, and when it finds token number A,
+     it prints it. Tokens are null-terminated in memory and fill three pages,
+     but there is no lookup table as that would consume too much memory, so the
+     only way to find the correct token is to start at the beginning and look
+     through the table byte by byte, counting tokens as we go until we are in the
+     right place. This approach might not be terribly speed efficient, but it is
+     certainly memory-efficient.
+    
+    
+    
+    * * *
+    
+    
+     Arguments:
+    
+       A                    The recursive token to be printed, in the range 0-148
+    
+    
+    
+    * * *
+    
+    
+     Other entry points:
+    
+       TT48                 Contains an RTS
+    
+    
+    
+    
+    .ex
+    
+     TAX                    \ Copy the token number into X
+    
+     LDA #LO(QQ18)          \ Set V(1 0) to point to the recursive token table at
+     STA V                  \ location QQ18
+     LDA #HI(QQ18)
+     STA V+1
+    
+     LDY #0                 \ Set a counter Y to point to the character offset
+                            \ as we scan through the table
+    
+     TXA                    \ Copy the token number back into A, so both A and X
+                            \ now contain the token number we want to print
+    
+     BEQ TT50               \ If the token number we want is 0, then we have
+                            \ already found the token we are looking for, so jump
+                            \ to TT50, otherwise start working our way through the
+                            \ null-terminated token table until we find the X-th
+                            \ token
+    
+    .TT51
+    
+     LDA (V),Y              \ Fetch the Y-th character from the token table page
+                            \ we are currently scanning
+    
+     BEQ TT49               \ If the character is null, we've reached the end of
+                            \ this token, so jump to TT49
+    
+     INY                    \ Increment character pointer and loop back around for
+     BNE TT51               \ the next character in this token, assuming Y hasn't
+                            \ yet wrapped around to 0
+    
+     INC V+1                \ If it has wrapped round to 0, we have just crossed
+     BNE TT51               \ into a new page, so increment V+1 so that V points
+                            \ to the start of the new page
+    
+    .TT49
+    
+     INY                    \ Increment the character pointer
+    
+     BNE TT59               \ If Y hasn't just wrapped around to 0, skip the next
+                            \ instruction
+    
+     INC V+1                \ We have just crossed into a new page, so increment
+                            \ V+1 so that V points to the start of the new page
+    
+    .TT59
+    
+     DEX                    \ We have just reached a new token, so decrement the
+                            \ token number we are looking for
+    
+     BNE TT51               \ Assuming we haven't yet reached the token number in
+                            \ X, look back up to keep fetching characters
+    
+    .TT50
+    
+                            \ We have now reached the correct token in the token
+                            \ table, with Y pointing to the start of the token as
+                            \ an offset within the page pointed to by V, so let's
+                            \ print the recursive token. Because recursive tokens
+                            \ can contain other recursive tokens, we need to store
+                            \ our current state on the stack, so we can retrieve
+                            \ it after printing each character in this token
+    
+     TYA                    \ Store the offset in Y on the stack
+     PHA
+    
+     LDA V+1                \ Store the high byte of V (the page containing the
+     PHA                    \ token we have found) on the stack, so the stack now
+                            \ contains the address of the start of this token
+    
+     LDA (V),Y              \ Load the character at offset Y in the token table,
+                            \ which is the next character of this token that we
+                            \ want to print
+    
+     EOR #RE                \ Tokens are stored in memory having been EOR'd with the
+                            \ value of RE - which is 35 for all versions of Elite
+                            \ except for NES, where RE is 62 - so we repeat the
+                            \ EOR to get the actual character to print
+    
+     JSR TT27               \ Print the text token in A, which could be a letter,
+                            \ number, control code, two-letter token or another
+                            \ recursive token
+    
+     PLA                    \ Restore the high byte of V (the page containing the
+     STA V+1                \ token we have found) into V+1
+    
+     PLA                    \ Restore the offset into Y
+     TAY
+    
+     INY                    \ Increment Y to point to the next character in the
+                            \ token we are printing
+    
+     BNE P%+4               \ If Y is zero then we have just crossed into a new
+     INC V+1                \ page, so increment V+1 so that V points to the start
+                            \ of the new page
+    
+     LDA (V),Y              \ Load the next character we want to print into A
+    
+     BNE TT50               \ If this is not the null character at the end of the
+                            \ token, jump back up to TT50 to print the next
+                            \ character, otherwise we are done printing
+    
+    .TT48
+    
+     RTS                    \ Return from the subroutine
+    
+
+[X]
+
+Configuration variable [QQ18](../../all/workspaces.md#qq18) = &A000
+
+The address of the text token table, as set in elite-data.asm
+
+[X]
+
+Configuration variable [RE](../../all/workspaces.md#re) = &23
+
+The obfuscation byte used to hide the recursive tokens table from crackers viewing the binary code
+
+[X]
+
+Subroutine [TT27](tt27.md) (category: Text)
+
+Print a text token
+
+[X]
+
+Label [TT49](ex.md#tt49) is local to this routine
+
+[X]
+
+Label [TT50](ex.md#tt50) is local to this routine
+
+[X]
+
+Label [TT51](ex.md#tt51) is local to this routine
+
+[X]
+
+Label [TT59](ex.md#tt59) is local to this routine
+
+[X]
+
+Variable [V](../workspace/zp.md#v) in workspace [ZP](../workspace/zp.md)
+
+Temporary storage, typically used for storing an address pointer
+
+[TT43](tt43.md "Previous routine")[SWAPPZERO](swappzero.md "Next routine")

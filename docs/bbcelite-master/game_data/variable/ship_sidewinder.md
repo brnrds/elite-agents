@@ -1,0 +1,130 @@
+---
+title: "The SHIP_SIDEWINDER (Game data) variable - Elite on the 6502"
+source: "https://elite.bbcelite.com/master/game_data/variable/ship_sidewinder.html"
+---
+
+[SHIP_VIPER (Game data)](ship_viper.md "Previous routine")[SHIP_MAMBA (Game data)](ship_mamba.md "Next routine")
+    
+    
+           Name: SHIP_SIDEWINDER                                         [Show more]
+           Type: Variable
+       Category: Drawing ships
+        Summary: Ship blueprint for a Sidewinder
+      Deep dive: [Ship blueprints](https://elite.bbcelite.com/deep_dives/ship_blueprints.html)
+                 [Comparing ship specifications](https://elite.bbcelite.com/deep_dives/comparing_ship_specifications.html)
+    
+    
+        Context: See this variable [in context in the source code](../../all/elite_data.md#header-ship_sidewinder)
+     Variations: See [code variations](../../related/compare/main/variable/ship_sidewinder.md) for this variable in the different versions
+     References: This variable is used as follows:
+                 * [XX21](xx21.md) uses SHIP_SIDEWINDER
+    
+    
+    
+    
+    
+    
+    .SHIP_SIDEWINDER
+    
+     EQUB 0                 \ Max. canisters on demise = 0
+     EQUW 65 * 65           \ Targetable area          = 65 * 65
+    
+     EQUB LO(SHIP_SIDEWINDER_EDGES - SHIP_SIDEWINDER)  \ Edges data offset (low)
+     EQUB LO(SHIP_SIDEWINDER_FACES - SHIP_SIDEWINDER)  \ Faces data offset (low)
+    
+     EQUB 65                \ Max. edge count          = (65 - 1) / 4 = 16
+     EQUB 0                 \ Gun vertex               = 0
+     EQUB 30                \ Explosion count          = 6, as (4 * n) + 6 = 30
+     EQUB 60                \ Number of vertices       = 60 / 6 = 10
+     EQUB 15                \ Number of edges          = 15
+     EQUW 50                \ Bounty                   = 50
+     EQUB 28                \ Number of faces          = 28 / 4 = 7
+     EQUB 20                \ Visibility distance      = 20
+     EQUB 70                \ Max. energy              = 70
+     EQUB 37                \ Max. speed               = 37
+    
+     EQUB HI(SHIP_SIDEWINDER_EDGES - SHIP_SIDEWINDER)  \ Edges data offset (high)
+     EQUB HI(SHIP_SIDEWINDER_FACES - SHIP_SIDEWINDER)  \ Faces data offset (high)
+    
+     EQUB 2                 \ Normals are scaled by    = 2^2 = 4
+     EQUB %00010000         \ Laser power              = 2
+                            \ Missiles                 = 0
+    
+    .SHIP_SIDEWINDER_VERTICES
+    
+          \    x,    y,    z, face1, face2, face3, face4, visibility
+     VERTEX  -32,    0,   36,     0,      1,    4,     5,         31    \ Vertex 0
+     VERTEX   32,    0,   36,     0,      2,    5,     6,         31    \ Vertex 1
+     VERTEX   64,    0,  -28,     2,      3,    6,     6,         31    \ Vertex 2
+     VERTEX  -64,    0,  -28,     1,      3,    4,     4,         31    \ Vertex 3
+     VERTEX    0,   16,  -28,     0,      1,    2,     3,         31    \ Vertex 4
+     VERTEX    0,  -16,  -28,     3,      4,    5,     6,         31    \ Vertex 5
+     VERTEX  -12,    6,  -28,     3,      3,    3,     3,         15    \ Vertex 6
+     VERTEX   12,    6,  -28,     3,      3,    3,     3,         15    \ Vertex 7
+     VERTEX   12,   -6,  -28,     3,      3,    3,     3,         12    \ Vertex 8
+     VERTEX  -12,   -6,  -28,     3,      3,    3,     3,         12    \ Vertex 9
+    
+    .SHIP_SIDEWINDER_EDGES
+    
+        \ vertex1, vertex2, face1, face2, visibility
+     EDGE       0,       1,     0,     5,         31    \ Edge 0
+     EDGE       1,       2,     2,     6,         31    \ Edge 1
+     EDGE       1,       4,     0,     2,         31    \ Edge 2
+     EDGE       0,       4,     0,     1,         31    \ Edge 3
+     EDGE       0,       3,     1,     4,         31    \ Edge 4
+     EDGE       3,       4,     1,     3,         31    \ Edge 5
+     EDGE       2,       4,     2,     3,         31    \ Edge 6
+     EDGE       3,       5,     3,     4,         31    \ Edge 7
+     EDGE       2,       5,     3,     6,         31    \ Edge 8
+     EDGE       1,       5,     5,     6,         31    \ Edge 9
+     EDGE       0,       5,     4,     5,         31    \ Edge 10
+     EDGE       6,       7,     3,     3,         15    \ Edge 11
+     EDGE       7,       8,     3,     3,         12    \ Edge 12
+     EDGE       6,       9,     3,     3,         12    \ Edge 13
+     EDGE       8,       9,     3,     3,         12    \ Edge 14
+    
+    .SHIP_SIDEWINDER_FACES
+    
+        \ normal_x, normal_y, normal_z, visibility
+     FACE        0,       32,        8,         31      \ Face 0
+     FACE      -12,       47,        6,         31      \ Face 1
+     FACE       12,       47,        6,         31      \ Face 2
+     FACE        0,        0,     -112,         31      \ Face 3
+     FACE      -12,      -47,        6,         31      \ Face 4
+     FACE        0,      -32,        8,         31      \ Face 5
+     FACE       12,      -47,        6,         31      \ Face 6
+    
+
+[X]
+
+Macro [EDGE](../macro/edge.md) (category: Drawing ships)
+
+Macro definition for adding edges to ship blueprints
+
+[X]
+
+Macro [FACE](../macro/face.md) (category: Drawing ships)
+
+Macro definition for adding faces to ship blueprints
+
+[X]
+
+Variable [SHIP_SIDEWINDER](ship_sidewinder.md) (category: Drawing ships)
+
+Ship blueprint for a Sidewinder
+
+[X]
+
+Label [SHIP_SIDEWINDER_EDGES](ship_sidewinder.md#ship_sidewinder_edges) is local to this routine
+
+[X]
+
+Label [SHIP_SIDEWINDER_FACES](ship_sidewinder.md#ship_sidewinder_faces) is local to this routine
+
+[X]
+
+Macro [VERTEX](../macro/vertex.md) (category: Drawing ships)
+
+Macro definition for adding vertices to ship blueprints
+
+[SHIP_VIPER (Game data)](ship_viper.md "Previous routine")[SHIP_MAMBA (Game data)](ship_mamba.md "Next routine")

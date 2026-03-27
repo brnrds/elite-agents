@@ -1,0 +1,667 @@
+{
+  "project": "llm-sim",
+  "branchName": "ralph/sim-ai-engine-implementation",
+  "description": "Implement the operational simulation engine so llm-sim can persist, execute, inspect, replay, and regression-test authored simulations end to end.",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Extend `ApplicationModelConfig` for runtime policy controls",
+      "description": "As an implementation agent, I want `ApplicationModelConfig` to represent handoff, summarization, truncation, retry, and attribution policy so that runtime modules can consume architecture-complete model settings without fallback comments.",
+      "acceptanceCriteria": [
+        "`src/contracts/application-model-config.ts` includes handoff, summarization, truncation, and cost-attribution policy fields from the PRD-recommended shape",
+        "`ApplicationModelConfig` still carries retry, backoff, transport, and output-mode fields needed by runtime transport code",
+        "`src/contracts/application-model-config.test.ts` covers the added policy surface",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-002",
+      "title": "Correct steering overlay priority ordering",
+      "description": "As an implementation agent, I want steering overlay sorting to follow the architecture's scope and priority rules so that runtime merge order matches authored intent.",
+      "acceptanceCriteria": [
+        "`sortSteeringOverlaysForDeterministicMerge()` keeps broader scopes ahead of narrower scopes",
+        "Within the same scope, higher `explicitPriority` sorts ahead of lower `explicitPriority`",
+        "A stable tie-break field such as `activatedAtSimulationInstant` is added and used when priorities tie",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "Add authored soft-skill scoping fields",
+      "description": "As an implementation agent, I want `SoftSkillDefinition` to capture goal-family, chain-state, and supporting prompt scoping so that runtime activation can be constrained by authored metadata.",
+      "acceptanceCriteria": [
+        "`src/contracts/soft-skills.ts` adds supporting prompt fragment ids and allowed/prohibited goal-family and chain-state fields",
+        "The new fields are additive and keep authored scoping separate from runtime execution logic",
+        "`src/contracts/soft-skills.test.ts` covers the added authored fields",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-004",
+      "title": "Replace tool integration metadata with structured boundary unions",
+      "description": "As an implementation agent, I want tool integration metadata to distinguish in-process, MCP, and HTTP boundaries so that tool runtime code can authorize and surface tools without ambiguous metadata.",
+      "acceptanceCriteria": [
+        "`src/contracts/tools.ts` defines a structured union for in-process, MCP, and HTTP integration metadata",
+        "The MCP variant captures server id, tool name, and transport mode needed by later runtime code",
+        "Contract tests reflect the new union shape and no helper relies on the removed metadata format",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-005",
+      "title": "Add authored config SQLite repository",
+      "description": "As an implementation agent, I want authored bundles stored behind a real SQLite repository so that the engine and API can load and revise authored configuration without route-local persistence code.",
+      "acceptanceCriteria": [
+        "`src/persistence/authored-config-sqlite-repository.ts` reads and upserts authored bundles using the existing schema",
+        "The repository exposes revision-aware reads needed by the config API without embedding route logic",
+        "Repository tests run against `:memory:` SQLite",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-006",
+      "title": "Add steering overlay SQLite repository",
+      "description": "As an implementation agent, I want steering overlays persisted in SQLite so that merged runtime steering can be driven by stored overlay state instead of in-memory placeholders.",
+      "acceptanceCriteria": [
+        "`src/persistence/steering-overlay-sqlite-repository.ts` supports create, update, disable, and list operations for overlays",
+        "Overlay persistence keeps deterministic merge metadata, including the stable activation tiebreaker from WS-00",
+        "Repository tests run against `:memory:` SQLite",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-007",
+      "title": "Add runtime projection SQLite repository",
+      "description": "As an implementation agent, I want runtime projections stored with replace semantics so that engine state can be atomically reloaded and updated between simulation instants.",
+      "acceptanceCriteria": [
+        "`src/persistence/runtime-projection-sqlite-repository.ts` reads and replaces runtime projections by `simulationId`",
+        "`bigint` values are serialized as strings at the SQL and JSON boundary",
+        "Repository tests verify replace semantics and round-tripping in `:memory:` SQLite",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 7,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-008",
+      "title": "Implement append-only canonical world event store",
+      "description": "As an implementation agent, I want canonical world events appended through a transactional SQLite store so that committed simulation truth is durable, ordered, and replayable.",
+      "acceptanceCriteria": [
+        "`src/persistence/canonical-world-event-sqlite-store.ts` appends canonical events with transactional per-`simulationId` ledger sequence assignment",
+        "The ledger remains append-only and supports bounded ledger-window reads for replay",
+        "Repository tests cover monotonic per-simulation ordering and transaction safety",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 8,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-009",
+      "title": "Add telemetry SQLite repository",
+      "description": "As an implementation agent, I want runtime telemetry stored in SQLite so that actor, tool, and engine execution can be inspected through queryable records.",
+      "acceptanceCriteria": [
+        "`src/persistence/telemetry-sqlite-repository.ts` supports telemetry append and list operations by simulation and window",
+        "Telemetry payloads and bigint-like values round-trip safely through SQLite and JSON serialization",
+        "Repository tests run against `:memory:` SQLite",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 9,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-010",
+      "title": "Add checkpoint SQLite repository",
+      "description": "As an implementation agent, I want simulation checkpoints persisted in SQLite so that bounded replay and reset operations can start from committed snapshots instead of rebuilding full history.",
+      "acceptanceCriteria": [
+        "`src/persistence/checkpoint-sqlite-repository.ts` saves and loads checkpoints by simulation and instant",
+        "Checkpoint reads can supply bounded replay starting points without reconstructing full history",
+        "Repository tests cover save, latest-load, and explicit-load behavior in `:memory:` SQLite",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 10,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-011",
+      "title": "Add application model config snapshot SQLite repository",
+      "description": "As an implementation agent, I want model-config snapshots stored per simulation so that runtime transport policy can be reproduced and inspected for a given execution run.",
+      "acceptanceCriteria": [
+        "`src/persistence/application-model-config-sqlite-repository.ts` reads and writes model-config snapshots per simulation",
+        "The repository persists the expanded policy surface added in WS-00 through application-owned interfaces",
+        "The snapshot repository is exported from `src/persistence/index.ts` and `src/index.ts`",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 11,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-012",
+      "title": "Implement OpenAI Responses transport text mode",
+      "description": "As an implementation agent, I want a real OpenAI SDK-backed transport for text responses so that actor deliberation can run through production transport code instead of stubs.",
+      "acceptanceCriteria": [
+        "`package.json` adds the `openai` dependency and `src/model-adapter/openai-responses-transport.ts`",
+        "The transport uses the OpenAI JS SDK for text-mode responses and returns only normalized `DeliberationTransportResult` values",
+        "Success-case tests cover request ids, response ids, and token-usage mapping from SDK responses",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 12,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-013",
+      "title": "Add structured output and tool-call transport modes",
+      "description": "As an implementation agent, I want the OpenAI transport to support structured output and tool-call responses so that runtime deliberation can handle all configured model output modes.",
+      "acceptanceCriteria": [
+        "`OpenAIResponsesTransport` supports `structured` and `tools` output modes from `ApplicationModelConfig.outputMode`",
+        "Structured responses and tool-call proposals are normalized into contract-safe result shapes without executing tools",
+        "Unit tests cover structured output and tool-call response cases",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 13,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-014",
+      "title": "Add retry, backoff, and rate-limit normalization to transport",
+      "description": "As an implementation agent, I want transport retries and rate-limit observations normalized through contracts so that runtime budgeting and failure handling can work without SDK-specific glue.",
+      "acceptanceCriteria": [
+        "Retry and backoff behavior are applied from `ApplicationModelConfig`",
+        "Rate-limit metadata, retryable SDK failures, and incomplete responses are normalized into contract-safe observations",
+        "Transport results remain usable for runtime budget signals with no extra mapping layer",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 14,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-015",
+      "title": "Load actor authored data and runtime context into the orchestrator",
+      "description": "As an implementation agent, I want a single orchestrator to load actor authored assets and runtime state so that each turn starts from one authoritative execution path.",
+      "acceptanceCriteria": [
+        "`src/actor/actor-runtime-orchestrator.ts` loads actor profile, prompt fragments, tools, chains, runtime state, and active overlays for a turn",
+        "The orchestrator interface matches the PRD input/output shape and keeps this loading logic out of `runActorTurnPipeline()`",
+        "Unit tests cover orchestration input assembly from authored and runtime sources",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 15,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-016",
+      "title": "Merge steering and derive bounded soft-skill activation",
+      "description": "As an implementation agent, I want the orchestrator to derive the same effective steering and soft-skill set that inspection views expose so that execution and inspection stay consistent.",
+      "acceptanceCriteria": [
+        "The orchestrator merges steering using the same merge code that inspection APIs will expose",
+        "Active soft skills are derived from authored scope, goal-family, and chain-state constraints with deterministic bounds",
+        "Unit tests cover merged steering and bounded soft-skill activation behavior",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 16,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-017",
+      "title": "Assemble explainable memory retrieval and prompt inputs",
+      "description": "As an implementation agent, I want the orchestrator to assemble explainable memory retrieval and prompt inputs so that actor deliberation is auditable and reproducible.",
+      "acceptanceCriteria": [
+        "The orchestrator builds explainable memory retrieval records for a turn",
+        "Prompt instructions and input items include prompt fragments, internal dialogue policy, and retrieved memory context",
+        "Unit tests cover retrieval provenance and prompt assembly outputs",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 17,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-018",
+      "title": "Integrate deliberation gating and staged turn outputs",
+      "description": "As an implementation agent, I want the orchestrator to gate deliberation and stage turn outputs through one path so that reflex-only and model-backed turns produce the same application-owned artifacts.",
+      "acceptanceCriteria": [
+        "The orchestrator calls `runActorTurnPipeline()` for reflex handling and invokes the model adapter only when `needsDeliberation` is true",
+        "Deliberation proposals are validated and merged into staged world intents, dialogue, memory writes, runtime updates, internal dialogue artifacts, and `ActorTurnTraceTelemetryPayload`",
+        "Unit tests cover reflex-only and real-deliberation turn paths through the orchestrator",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 18,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-019",
+      "title": "Add simulation engine lifecycle scaffold",
+      "description": "As an implementation agent, I want a `SimulationEngine` with lifecycle entrypoints so that simulation control stops living in contracts and starts living in executable services.",
+      "acceptanceCriteria": [
+        "`src/engine/simulation-engine.ts` and companion types define `start`, `pause`, `resume`, `reset`, and `step` entrypoints",
+        "Lifecycle methods load and persist simulation runtime state through repositories instead of route-local logic",
+        "Unit tests cover lifecycle state transitions without processing a full instant",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 19,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-020",
+      "title": "Implement pre-actor instant coordination",
+      "description": "As an implementation agent, I want engine step setup to deterministically collect and order ready work so that each simulation instant begins from a consistent world-owned schedule.",
+      "acceptanceCriteria": [
+        "`step()` loads the current runtime snapshot, begins the instant cycle, collects ready world work, and orders it through `SimulationInstantCoordinator` and `orderReadyWorkForInstant()`",
+        "World and workflow continuations execute before reactive actors",
+        "Unit tests cover deterministic ready-work ordering for a single instant",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 20,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-021",
+      "title": "Apply deterministic world-side mutations and contention resolution",
+      "description": "As an implementation agent, I want world-side mutations resolved inside the engine step so that resource reservation and contention outcomes stay application-owned and deterministic.",
+      "acceptanceCriteria": [
+        "The engine applies deterministic world-side updates and routes conflicts through `resolveWorldContentionMutations()`",
+        "Only committed world-engine mutations can reserve resources, and actor turns do not advance time directly",
+        "Unit tests cover deterministic conflict resolution inside engine step handling",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 21,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-022",
+      "title": "Execute actor turns inside the engine step",
+      "description": "As an implementation agent, I want the engine to run ready actors in deterministic order so that actor execution becomes part of one authoritative simulation loop.",
+      "acceptanceCriteria": [
+        "The engine builds the ready actor set and runs actor turns in deterministic order through the orchestrator",
+        "Accepted world actions and staged actor artifacts are collected before canonical events are committed",
+        "Unit tests cover one instant with reflex-only and deliberative actor execution branches",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 22,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-023",
+      "title": "Commit canonical events, telemetry, runtime projections, and checkpoints",
+      "description": "As an implementation agent, I want engine step commit and clock advancement to happen in one sealed path so that canonical events, telemetry, and state snapshots are persisted before time moves forward.",
+      "acceptanceCriteria": [
+        "The engine appends canonical events, telemetry, runtime projections, and checkpoints during `step()`",
+        "The instant is sealed before the clock advances, and `step()` returns committed event ids plus the next simulation instant",
+        "Unit tests cover end-to-end processing of one complete instant",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 23,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-024",
+      "title": "Add environment map and spatial event contracts",
+      "description": "As an implementation agent, I want explicit environment and spatial-event contracts so that world authority over movement and visibility is expressed in authored data instead of prompt-only interpretation.",
+      "acceptanceCriteria": [
+        "`src/contracts/environment-map.ts` and `src/contracts/spatial-events.ts` define areas, adjacency, occupancy limits, visibility policy, access constraints, and canonical spatial event shapes",
+        "Contract exports and domain-pack fixtures are updated to supply authored environment metadata",
+        "Contract tests cover the new environment and spatial event shapes",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 24,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-025",
+      "title": "Implement spatial relationship service",
+      "description": "As an implementation agent, I want spatial state evaluated from authoritative world data so that occupancy, visibility, movement, and access checks stop relying on ad hoc prompt reasoning.",
+      "acceptanceCriteria": [
+        "`src/world/spatial-relationship-service.ts` evaluates movement completion, proximity, visibility, occupancy, and area access from authoritative world state",
+        "The service emits enter, leave, proximate, visible, blocked, and access-lost spatial event inputs",
+        "Unit tests cover movement, visibility, and blocked-access cases",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 25,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-026",
+      "title": "Implement world-owned interaction lifecycle service",
+      "description": "As an implementation agent, I want interaction lifecycle transitions owned by world services so that handoffs, interruptions, exits, and timeouts are committed facts instead of prompt text.",
+      "acceptanceCriteria": [
+        "`src/world/interaction-lifecycle-service.ts` manages interaction creation, handoff, interruption, timeout, and exit as world-owned transitions",
+        "`SimulationInteractionRecord` persists outside prompt text and remains authoritative in world state",
+        "Unit tests cover lifecycle transitions and committed interaction event generation",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 26,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-027",
+      "title": "Project actor spatial context from world truth",
+      "description": "As an implementation agent, I want actor spatial runtime context derived from world-owned state so that actor observations and human-attention exclusivity follow committed simulation truth.",
+      "acceptanceCriteria": [
+        "`ActorSpatialRuntimeContextState` is kept as a projection derived from world-owned spatial and interaction state",
+        "Human-attention exclusivity and contention for interaction slots or area occupancy resolve through world services and engine integration",
+        "Unit tests cover projection updates and exclusivity rules",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 27,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-028",
+      "title": "Add tool registry and non-MCP adapters",
+      "description": "As an implementation agent, I want tool adapters registered by `adapterId` so that read-only and HTTP-backed tools can be surfaced and validated through one runtime boundary.",
+      "acceptanceCriteria": [
+        "`src/tools/tool-registry.ts`, `src/tools/in-process-tool-adapter.ts`, and `src/tools/http-tool-adapter.ts` register adapters by `adapterId`",
+        "Input and output payloads are validated around in-process and HTTP adapter invocation",
+        "Unit tests cover adapter lookup and validation failures",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 28,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-029",
+      "title": "Add MCP tool adapter support",
+      "description": "As an implementation agent, I want MCP-backed tool definitions resolved through a dedicated adapter so that vendor workflow integration stays outside the engine while still exposing MCP metadata cleanly.",
+      "acceptanceCriteria": [
+        "`src/tools/mcp-tool-adapter.ts` resolves MCP-backed tool definitions from the structured metadata added in WS-00",
+        "MCP capability surfacing includes server id, tool name, and transport without leaking vendor workflow logic into the engine",
+        "Unit tests cover MCP-backed definition resolution and capability surfacing",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 29,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-030",
+      "title": "Implement commit-gated tool runtime",
+      "description": "As an implementation agent, I want tool requests authorized on the commit path so that model-proposed tool calls cannot create side effects before the world approves them.",
+      "acceptanceCriteria": [
+        "`src/tools/tool-runtime.ts` surfaces tools through `simulationToolCapabilitySurfaceFromDefinition()` and treats model-proposed tool calls as requests",
+        "`requiresWorldCommitBeforeAdapterInvocation` is enforced so mutating tools run only after world authorization on the commit path",
+        "Unit tests cover read-only tools, gated mutating tools, and rejected unauthorized executions",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 30,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-031",
+      "title": "Append auditable tool telemetry and engine integration",
+      "description": "As an implementation agent, I want tool execution wired into the orchestrator and engine with correlated telemetry so that tool requests can be inspected alongside canonical world events.",
+      "acceptanceCriteria": [
+        "Structured tool-call telemetry is appended and can be correlated to canonical world events",
+        "The actor orchestrator and simulation engine integrate the tool runtime without absorbing vendor workflow logic",
+        "Unit tests cover telemetry correlation for successful and failed tool requests",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 31,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-032",
+      "title": "Add Fastify server bootstrap and dependency wiring",
+      "description": "As an implementation agent, I want one server bootstrap that composes repositories, the engine, and route modules so that the API surface reuses executable services instead of rebuilding logic in handlers.",
+      "acceptanceCriteria": [
+        "`package.json` adds `fastify` and `src/api/server.ts` composes repositories, engine services, and route modules",
+        "Server bootstrap exports application-owned services from `src/index.ts` instead of duplicating wiring in handlers",
+        "Server tests cover registration and startup/shutdown",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 32,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-033",
+      "title": "Implement config and validation routes",
+      "description": "As a local caller, I want configuration and validation endpoints so that I can load, revise, diff, and validate authored bundles over HTTP without bypassing repository or contract logic.",
+      "acceptanceCriteria": [
+        "Config routes expose authored bundle get, upsert, revision list, and diff operations through repositories and services",
+        "Validation routes expose bundle validation using `src/contracts/simulation-authoring-api.ts` without moving validation logic",
+        "API tests cover successful config mutation and validation failure responses",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 33,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-034",
+      "title": "Implement steering routes and merged-state inspection",
+      "description": "As a local caller, I want steering overlay mutation and inspection endpoints so that I can manage overlays and inspect the same merged steering state the runtime uses.",
+      "acceptanceCriteria": [
+        "Steering routes support create, update, and disable overlay flows",
+        "Steering inspection endpoints expose merged steering state and provenance using the same merge logic the runtime uses",
+        "API tests cover overlay mutation and merged-state inspection responses",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 34,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-035",
+      "title": "Implement simulation lifecycle routes",
+      "description": "As a local caller, I want simulation lifecycle endpoints so that I can start, step, pause, resume, and reset a simulation over HTTP through the same engine services used elsewhere.",
+      "acceptanceCriteria": [
+        "Simulation routes expose `start`, `step`, `pause`, `resume`, and `reset` through `SimulationEngine`",
+        "Route handlers delegate lifecycle work to engine services and repositories rather than duplicating simulation logic",
+        "API tests cover the full lifecycle command flow for a simulation id",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 35,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-036",
+      "title": "Implement runtime inspection routes",
+      "description": "As a local caller, I want inspection endpoints for runtime and actor state so that I can query simulation state, recent events, internal dialogue, and usage without relying on hidden host data.",
+      "acceptanceCriteria": [
+        "Inspection routes expose runtime state, actor state, goal arbitration, recent events, internal dialogue, and token/context-usage views",
+        "Responses use architecture contracts rather than host-only hidden state",
+        "API tests cover inspection payloads and filtering windows",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 36,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-037",
+      "title": "Implement checkpoint loader and ledger-window replayer",
+      "description": "As a simulation operator, I want bounded replay from checkpoints and ledger windows so that I can reconstruct committed runtime state without relying on prompt history.",
+      "acceptanceCriteria": [
+        "`src/replay/checkpoint-loader.ts` and `src/replay/ledger-window-replayer.ts` reconstruct runtime state from a checkpoint plus a bounded canonical-event window",
+        "Replay consumes committed events rather than prompt history and remains bounded by explicit inputs",
+        "Unit tests cover checkpoint-based replay of a bounded run slice",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 37,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-038",
+      "title": "Implement actor trace replayer from telemetry windows",
+      "description": "As a simulation operator, I want actor-centric replay from telemetry windows so that I can explain what an actor observed, decided, attempted, and committed during a bounded incident.",
+      "acceptanceCriteria": [
+        "`src/replay/actor-trace-replayer.ts` reconstructs actor-centric traces from telemetry row windows",
+        "Replay output explains observed input, decision, attempted action, and commit without requiring byte-for-byte model text",
+        "Unit tests cover actor-trace reconstruction across a bounded telemetry window",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 38,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-039",
+      "title": "Expose replay execution through inspection APIs",
+      "description": "As a simulation operator, I want replay endpoints wired into the inspection API so that bounded incident reconstruction is available through the same HTTP surface as runtime inspection.",
+      "acceptanceCriteria": [
+        "Inspection routes integrate checkpoint and actor-trace replayers for bounded replay requests",
+        "Replay responses correlate checkpoints, ledger events, telemetry, and actor traces through the public API contracts",
+        "API tests cover replay endpoint behavior for ledger-window and actor-trace requests",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 39,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-040",
+      "title": "Add deterministic contention and reflex-only end-to-end scenarios",
+      "description": "As a reviewer, I want end-to-end coverage for contention resolution and reflex-only turns so that the composed engine path proves deterministic execution without any model call.",
+      "acceptanceCriteria": [
+        "End-to-end tests cover same-instant contention handling and reflex-only actor turns with no model call",
+        "Scenarios execute through the composed engine/runtime path rather than isolated helpers",
+        "E2E tests run as part of the repository test suite",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 40,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-041",
+      "title": "Add deliberative turn end-to-end coverage with SDK-boundary mocks",
+      "description": "As a reviewer, I want end-to-end coverage for model-backed turns so that real transport integration is exercised while the OpenAI SDK remains mocked at the external boundary.",
+      "acceptanceCriteria": [
+        "End-to-end tests cover deliberative turns while mocking the real OpenAI transport at the SDK boundary",
+        "Scenarios verify model usage flows through the transport, orchestrator, and engine without mutating world truth inside the adapter",
+        "E2E tests run as part of the repository test suite",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 41,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-042",
+      "title": "Add steering overlay and internal dialogue end-to-end coverage",
+      "description": "As a reviewer, I want end-to-end coverage for steering overlays and internal dialogue policy so that merged-state inspection and runtime behavior can be verified against the same execution path.",
+      "acceptanceCriteria": [
+        "End-to-end tests cover steering overlay activation, merged-state inspection, and internal dialogue materialization under policy and budget pressure",
+        "Scenarios verify execution and inspection share the same effective merged steering state",
+        "E2E tests run as part of the repository test suite",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 42,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-043",
+      "title": "Add tool-commit gating and interaction lifecycle end-to-end coverage",
+      "description": "As a reviewer, I want end-to-end coverage for tool commit gating and interaction lifecycle transitions so that world-owned side effects and interaction facts are proven in the integrated runtime.",
+      "acceptanceCriteria": [
+        "End-to-end tests cover tool execution only after world commit plus interaction enter, handoff, interruption, timeout, and exit",
+        "Scenarios verify interaction and tool outcomes are committed as world/application facts rather than prompt-only artifacts",
+        "E2E tests run as part of the repository test suite",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 43,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-044",
+      "title": "Add replay and dual-domain regression coverage",
+      "description": "As a reviewer, I want replay and dual-domain end-to-end coverage so that checkpoint replay works and both hospitality and clinical packs prove the engine stays domain-agnostic.",
+      "acceptanceCriteria": [
+        "End-to-end tests cover checkpoint-based replay and bounded replay windows for both hospitality and clinical domain packs",
+        "Engine behavior remains domain-agnostic across both packs with no engine-specific forks",
+        "E2E tests run as part of the repository test suite",
+        "Tests pass",
+        "Typecheck passes"
+      ],
+      "priority": 44,
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}
